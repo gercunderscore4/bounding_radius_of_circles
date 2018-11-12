@@ -1,12 +1,14 @@
 clear
 clc
+tic
 
-radii = [3 5 6 4*ones(1,15) 2*ones(1,5)]';
+%radii = [3 5 6 4*ones(1,15) 2*ones(1,5)]';
 %radii = [3 4 5]';
 %radii = [3, 4, 5]';
 %radii = [3, 5, 6, 4*ones(1,15), 2*ones(1,5)]';
-%radii = rand(10,1);
+radii = rand(50,1);
 %radii = ones(10,1);
+radii = sort(radii, 'descend');
 N = length(radii);
 
 % calculate area in advance
@@ -182,9 +184,12 @@ clf;
 plot_circles(positions, radii);
 plot_circles(center, radius);
 hold on
-for nn = 1:N
-    text(positions(nn,1), positions(nn,2), int2str(nn))
-end
-text(center(1), center(2), 'C')
+%for nn = 1:N
+%    text(positions(nn,1), positions(nn,2), int2str(nn)) % print order
+%    %text(positions(nn,1), positions(nn,2), sprintf('%.2f', radii(nn))) % print size
+%end
+%text(center(1), center(2), 'C')
+plot(center(1), center(2), '*')
 hold off
 axis('equal');
+toc
