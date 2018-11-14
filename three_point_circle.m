@@ -17,11 +17,11 @@ function [x, y, r] = three_point_circle(P)
     % y0 = -B/2
     % r = (A/2)^2 + (B/2)^2 - C
     
-    P = [P ones(3,1)]
-    Q = -1*sum(P.^2, 2)
-    s = P\Q
+    T = [P ones(3,1)];
+    Q = -1*sum(P.^2, 2);
+    s = T\Q;
     
-    x = -1*s(1)/2
-    y = -1*s(2)/2
-    r = sqrt(x^2 + y^2 - s(3))
+    x = -1*s(1)/2;
+    y = -1*s(2)/2;
+    r = sqrt(x^2 + y^2 - s(3));
 end

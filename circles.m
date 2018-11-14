@@ -19,6 +19,10 @@ e = 1E-3;
 
 % calculate tightly packed positions
 positions = zeros(N,2);
+n = 32;
+theta = linspace(0,2*pi,n)';
+circ = [cos(theta), sin(theta)];
+points = [];
 if N > 1
     % circle 1 at origin
     % circle 2 beside it along x-axis
@@ -103,36 +107,30 @@ if N > 1
                     pn(2,:) = [x1 + a*U(1) + h*UN2(1), y1 + a*U(2) + h*UN2(2)];
                     
                     for mm = 1:2
-                        % try first
+                        % get possible point
                         positions(nn,:) = pn(mm,:);
-                        center = (areas(1:nn)' * positions(1:nn,:)) / sum(areas(1:nn));
-    
+                        
                         % determine collision
                         collided = sum(sqrt(sum((positions(1:(nn-1),:) - positions(nn,:)).^2, 2)) < (radii(1:(nn-1)) + radii(nn)));
+                        if collided
+                            continue
+                        end
+
+                        % calculate new enclosing circle
+                        new_points = [points; (positions(nn,:) + (radii(nn)*circ))];
+                        [center, radius] = get_circle(new_points);
+                        %center = (areas(1:nn)' * positions(1:nn,:)) / sum(areas(1:nn));
+                        %radius = max(sqrt(sum((positions - center).^2, 2)) + radii);
     
-                        % calculate new total radius
-                        radius = max(sqrt(sum((positions - center).^2, 2)) + radii);
-                    
                         % check if better
                         distance = norm(positions(nn,:) - center);
-    
                         best = (radius < total_radius) || ((radius == total_radius) && (distance < dist_to_center));
-    
-                        %figure(1);
-                        %clf;
-                        %plot_circles(positions(1:nn,:), radii(1:nn));
-                        %axis('equal');
-                        %nn
-                        %ii
-                        %jj
-                        %collided
-                        %best
-                        %pause;
-            
-                        if (collided == 0) && best
+                        
+                        if best
                             total_radius = radius;
                             dist_to_center = distance;
                             pnp = positions(nn,:);
+                            keep_points = positions(nn,:);
                             
                             % get/print debug for sub-steps
                             %nn;
@@ -166,12 +164,15 @@ if N > 1
         %disp('')
         
         positions(nn,:) = pnp;
+        points = [points; (positions(nn,:) + (radii(nn)*circ))];
     end
 end
 
 % re-calculate center and radius
-center = (areas' * positions) / sum(areas);
-radius = max(sqrt(sum((positions - center).^2, 2)) + radii);
+[x,y,radius] = welzl(positions);
+center = [x,y];
+%center = (areas' * positions) / sum(areas);
+%radius = max(sqrt(sum((positions - center).^2, 2)) + radii);
 
 % print values
 center

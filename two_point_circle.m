@@ -1,4 +1,4 @@
-function [x, y, r] = three_point_circle(P)
+function [x, y, r] = two_point_circle(P)
     % center at midpoint
     % diameter is distance between points
     p = [P(1,:) + P(2,:)] / 2;
