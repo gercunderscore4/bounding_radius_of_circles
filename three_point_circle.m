@@ -5,8 +5,8 @@ function [x, y, r] = three_point_circle(P)
     % [x1, y1, 1] [A]   [(-x1*x1 -y1*y1)]
     % [x2, y2, 1] [B] = [(-x2*x2 -y2*y2)]
     % [x3, y3, 1] [C]   [(-x3*x3 -y3*y3)]
-    % Ps = Q
-    % s = P\Q
+    % Ts = Q
+    % s = T\Q
     %
     % convert equation to useful form
     % x^2 + y^2 + A*x + B*y = -C
@@ -19,9 +19,13 @@ function [x, y, r] = three_point_circle(P)
     
     T = [P ones(3,1)];
     Q = -1*sum(P.^2, 2);
-    s = T\Q;
-    
-    x = -1*s(1)/2;
-    y = -1*s(2)/2;
-    r = sqrt(x^2 + y^2 - s(3));
+    if rank(T) < 3
+        [x,y,r] = welzl(P,[]);
+    else
+        s = T\Q;
+        
+        x = -1*s(1)/2;
+        y = -1*s(2)/2;
+        r = sqrt(x^2 + y^2 - s(3));
+    end
 end

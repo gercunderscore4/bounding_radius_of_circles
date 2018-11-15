@@ -2,10 +2,10 @@ clear
 clc
 
 % get points
-P = [0 1; 0 2; 0 2]
+P = [0 1; 0 2; 0 3]
 % calculate smallest enclosing circle
 % https://en.wikipedia.org/wiki/Smallest-circle_problem#Welzl's_algorithm
-[x,y,r] = welzl(P, []);
+%[x,y,r] = welzl(P, []);
 [x,y,r] = three_point_circle(P, []);
 
 figure(1)

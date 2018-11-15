@@ -6,7 +6,7 @@ tic
 %radii = [3 4 5]';
 %radii = [3, 4, 5]';
 %radii = [3, 5, 6, 4*ones(1,15), 2*ones(1,5)]';
-radii = rand(50,1);
+radii = rand(10,1);
 %radii = ones(10,1);
 radii = sort(radii, 'descend');
 N = length(radii);
@@ -19,14 +19,19 @@ e = 1E-3;
 
 % calculate tightly packed positions
 positions = zeros(N,2);
-n = 32;
+% initialize values for convex hull
+n = 16;
 theta = linspace(0,2*pi,n)';
 circ = [cos(theta), sin(theta)];
-points = [];
+points = [(positions(1,:) + (radii(1)*circ))];
 if N > 1
     % circle 1 at origin
     % circle 2 beside it along x-axis
     positions(2,:) = [radii(1) + radii(2) + e, 0];
+    % maintain convex hull for fast enclosing circle calculations
+    points = [points; (positions(2,:) + (radii(2)*circ))];
+    convex = convhull(points(:,1), points(:,2));
+    points = points(convex(2:end),:); 
 
     % place other circles touching two other circles
     %
@@ -116,8 +121,11 @@ if N > 1
                             continue
                         end
 
-                        % calculate new enclosing circle
+                        % maintain convex hull for fast enclosing circle calculations
                         new_points = [points; (positions(nn,:) + (radii(nn)*circ))];
+                        convex = convhull(new_points(:,1), new_points(:,2));
+                        new_points = new_points(convex(2:end),:); 
+                        % calculate new enclosing circle
                         [center, radius] = get_circle(new_points);
                         %center = (areas(1:nn)' * positions(1:nn,:)) / sum(areas(1:nn));
                         %radius = max(sqrt(sum((positions - center).^2, 2)) + radii);
@@ -164,12 +172,15 @@ if N > 1
         %disp('')
         
         positions(nn,:) = pnp;
+        % maintain convex hull for fast enclosing circle calculations
         points = [points; (positions(nn,:) + (radii(nn)*circ))];
+        convex = convhull(points(:,1), points(:,2));
+        points = points(convex(2:end),:);
     end
 end
 
 % re-calculate center and radius
-[x,y,radius] = welzl(positions);
+[x,y,radius] = welzl(points,[]);
 center = [x,y];
 %center = (areas' * positions) / sum(areas);
 %radius = max(sqrt(sum((positions - center).^2, 2)) + radii);
@@ -191,6 +202,7 @@ hold on
 %end
 %text(center(1), center(2), 'C')
 plot(center(1), center(2), '*')
+%plot(points(:,1), points(:,2), '*') % convex set
 hold off
 axis('equal');
 toc
