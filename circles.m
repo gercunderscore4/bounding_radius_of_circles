@@ -2,17 +2,22 @@ clear
 clc
 tic
 
+%%%%%%%%%%%%%%%% BEGIN INPUT %%%%%%%%%%%%%%%%
+
+% NOTE: Diameter can be used in place of radius. Only impact is on the plot.
+
 %radii = [3 5 6 4*ones(1,15) 2*ones(1,5)]';
 %radii = [3 4 5]';
 %radii = [3, 4, 5]';
 %radii = [3, 5, 6, 4*ones(1,15), 2*ones(1,5)]';
 radii = rand(10,1);
-%radii = ones(10,1);
+%radii = ones(2,1);
+
+%%%%%%%%%%%%%%%% END INPUT %%%%%%%%%%%%%%%%
+
+% largest -> smallest gives good performance
 radii = sort(radii, 'descend');
 N = length(radii);
-
-% calculate area in advance
-areas = 4 * pi * (radii.^2);
 
 % minimum separation (to avoid mathematical edge-cases)
 e = 1E-3;
@@ -20,10 +25,11 @@ e = 1E-3;
 % calculate tightly packed positions
 positions = zeros(N,2);
 % initialize values for convex hull
-n = 16;
+n = 16; % number of points along circle for convex hull calculation
 theta = linspace(0,2*pi,n)';
 circ = [cos(theta), sin(theta)];
 points = [(positions(1,:) + (radii(1)*circ))];
+disp(sprintf('%d/%d', 1, N));
 if N > 1
     % circle 1 at origin
     % circle 2 beside it along x-axis
@@ -32,6 +38,7 @@ if N > 1
     points = [points; (positions(2,:) + (radii(2)*circ))];
     convex = convhull(points(:,1), points(:,2));
     points = points(convex(2:end),:); 
+    disp(sprintf('%d/%d', 2, N));
 
     % place other circles touching two other circles
     %
@@ -74,13 +81,6 @@ if N > 1
         total_radius   = Inf;
         dist_to_center = Inf;
         pnp = [NaN, NaN];
-        d_ii = 0;
-        d_jj = 0;
-        d_mm = 0;
-        d_collided = 0;
-        d_a = 0;
-        d_d = 0;
-        d_h = 0;
         
         for ii = 2:(nn-1)
             for jj = 1:(ii-1)
@@ -127,8 +127,6 @@ if N > 1
                         new_points = new_points(convex(2:end),:); 
                         % calculate new enclosing circle
                         [center, radius] = get_circle(new_points);
-                        %center = (areas(1:nn)' * positions(1:nn,:)) / sum(areas(1:nn));
-                        %radius = max(sqrt(sum((positions - center).^2, 2)) + radii);
     
                         % check if better
                         distance = norm(positions(nn,:) - center);
@@ -139,70 +137,38 @@ if N > 1
                             dist_to_center = distance;
                             pnp = positions(nn,:);
                             keep_points = positions(nn,:);
-                            
-                            % get/print debug for sub-steps
-                            %nn;
-                            %d_collided = collided;
-                            %d_ii = ii;
-                            %d_jj = jj;
-                            %d_mm = mm;
-                            %d_a = a;
-                            %d_d = d;
-                            %d_h = h;
-                            %disp('')
                         end
             
                     end
                 end
             end
         end
-    
-        % print debug for steps
-        %nn
-        %pnp
-        %total_radius
-        %dist_to_center
-        %d_collided
-        %d_ii
-        %d_jj
-        %d_mm
-        %d_a
-        %d_d
-        %d_h
-        %disp('')
-        
         positions(nn,:) = pnp;
         % maintain convex hull for fast enclosing circle calculations
         points = [points; (positions(nn,:) + (radii(nn)*circ))];
         convex = convhull(points(:,1), points(:,2));
         points = points(convex(2:end),:);
+    disp(sprintf('%d/%d', nn, N));
     end
 end
 
 % re-calculate center and radius
 [x,y,radius] = welzl(points,[]);
 center = [x,y];
-%center = (areas' * positions) / sum(areas);
-%radius = max(sqrt(sum((positions - center).^2, 2)) + radii);
+
+% re-center circles
+points    = points    - center;
+positions = positions - center;
+center = [0,0];
 
 % print values
-center
+clc
 radius
 N
-usage = sum(areas) / (4 * pi * (radius^2))
+usage = sum(radii.^2) / radius^2
 
 figure(1);
 clf;
-plot_circles(positions, radii);
-plot_circles(center, radius);
-hold on
-%for nn = 1:N
-%    text(positions(nn,1), positions(nn,2), int2str(nn)) % print order
-%    %text(positions(nn,1), positions(nn,2), sprintf('%.2f', radii(nn))) % print size
-%end
-%text(center(1), center(2), 'C')
-plot(center(1), center(2), '*')
-%plot(points(:,1), points(:,2), '*') % convex set
-hold off
+plot_circles([positions; center], [radii; radius]);
 axis('equal');
 toc
