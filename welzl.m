@@ -1,6 +1,7 @@
 function [x, y, r] = welzl(P, R)
     sP = size(P,1);
     sR = size(R,1);
+    disp(sprintf('P = %4d    R = %4d', sP, sR))
     if sR > 3
         [x,y,r] = welzl(R, []);
     elseif (sP == 0)

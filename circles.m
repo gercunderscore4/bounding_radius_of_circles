@@ -10,7 +10,7 @@ tic
 %radii = [3 4 5]';
 %radii = [3, 4, 5]';
 %radii = [3, 5, 6, 4*ones(1,15), 2*ones(1,5)]';
-radii = rand(10,1);
+radii = [0.142*ones(1,34)]';
 %radii = ones(2,1);
 
 %%%%%%%%%%%%%%%% END INPUT %%%%%%%%%%%%%%%%
@@ -25,17 +25,17 @@ e = 1E-3;
 % calculate tightly packed positions
 positions = zeros(N,2);
 % initialize values for convex hull
-n = 16; % number of points along circle for convex hull calculation
+n = 8; % number of points along circle for convex hull calculation
 theta = linspace(0,2*pi,n)';
 circ = [cos(theta), sin(theta)];
-points = [(positions(1,:) + (radii(1)*circ))];
+points = bsxfun(@plus, positions(1,:), radii(1)*circ);
 disp(sprintf('%d/%d', 1, N));
 if N > 1
     % circle 1 at origin
     % circle 2 beside it along x-axis
     positions(2,:) = [radii(1) + radii(2) + e, 0];
     % maintain convex hull for fast enclosing circle calculations
-    points = [points; (positions(2,:) + (radii(2)*circ))];
+    points = [points; bsxfun(@plus, positions(2,:), radii(2)*circ)];
     convex = convhull(points(:,1), points(:,2));
     points = points(convex(2:end),:); 
     disp(sprintf('%d/%d', 2, N));
@@ -116,13 +116,13 @@ if N > 1
                         positions(nn,:) = pn(mm,:);
                         
                         % determine collision
-                        collided = sum(sqrt(sum((positions(1:(nn-1),:) - positions(nn,:)).^2, 2)) < (radii(1:(nn-1)) + radii(nn)));
+                        collided = sum(sqrt(sum(bsxfun(@minus, positions(1:(nn-1),:), positions(nn,:)).^2, 2)) < (radii(1:(nn-1)) + radii(nn)));
                         if collided
                             continue
                         end
 
                         % maintain convex hull for fast enclosing circle calculations
-                        new_points = [points; (positions(nn,:) + (radii(nn)*circ))];
+                        new_points = [points; bsxfun(@plus, positions(nn,:), (radii(nn)*circ))];
                         convex = convhull(new_points(:,1), new_points(:,2));
                         new_points = new_points(convex(2:end),:); 
                         % calculate new enclosing circle
@@ -145,20 +145,19 @@ if N > 1
         end
         positions(nn,:) = pnp;
         % maintain convex hull for fast enclosing circle calculations
-        points = [points; (positions(nn,:) + (radii(nn)*circ))];
+        points = [points; bsxfun(@plus, positions(nn,:), radii(nn)*circ)];
         convex = convhull(points(:,1), points(:,2));
         points = points(convex(2:end),:);
-    disp(sprintf('%d/%d', nn, N));
+        disp(sprintf('%d/%d', nn, N));
     end
 end
 
 % re-calculate center and radius
-[x,y,radius] = welzl(points,[]);
-center = [x,y];
+[center,radius] = get_circle(points);
 
 % re-center circles
-points    = points    - center;
-positions = positions - center;
+points    = bsxfun(@minus, points   , center);
+positions = bsxfun(@minus, positions, center);
 center = [0,0];
 
 % print values

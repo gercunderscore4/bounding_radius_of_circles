@@ -20,6 +20,9 @@ function [x, y, r] = three_point_circle(P)
     T = [P ones(3,1)];
     Q = -1*sum(P.^2, 2);
     if rank(T) < 3
+        disp('GDI')
+        P
+        pause
         [x,y,r] = welzl(P,[]);
     else
         s = T\Q;
